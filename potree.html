@@ -43,11 +43,25 @@
 		
 		viewer.setEDLEnabled(true);
 		viewer.setFOV(60);
-		viewer.setPointBudget(3_000_000);
+		viewer.setPointBudget(1_000_000);
 		viewer.loadSettingsFromURL();
 		
 		viewer.setControls(viewer.earthControls);
-		window.open("https://www.mozilla.org/", "mozillaWindow", "popup");
+
+
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/open
+		// https://developer.mozilla.org/en-US/docs/Glossary/WindowProxy
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+		// https://scriptverse.academy/tutorials/html5-window-postmessage.html
+		var domain = "http://127.0.0.1:5501";
+		var proxy = window.open(domain + "/popup.html", "my-popup", "popup");
+		console.log(proxy);
+
+		await new Promise(resolve => setTimeout(resolve, 1000))
+		
+		var obj = "This is a message, send from the other side!!";
+		proxy.postMessage(obj, domain);
 		// viewer.setDescription("AHN-2");
 		
 		// viewer.loadGUI(() => {
