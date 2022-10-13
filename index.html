@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geofront</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"           integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <style>
+        * {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container pt-5">
+        <h1>Potree Widget</h1>
+        <div>
+            <label for="source">Source:</label><br>
+            <input type="text" id="source" name="fname" value="http://ahn2.pointclouds.nl/potree_data/tile_all/cloud.js">
+            <br>
+        </div>
+        <div>
+            <button class="button" id="open">Open</button>
+        </div>
+        <div>
+            <button id="get-points">Extract Selection</button>
+        </div>
+        <div>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+        </div>
+    </div>
+
+    <script type="module">
+
+        function sleep(ms) {
+            return new Promise(r => setTimeout(r, ms))
+        }
+
+		let domain = window.location.origin;
+		let popUp = '';
+
+        window.
+		document.getElementById('open').addEventListener('click', async () => {
+
+            let pathToSource = document.getElementById('source').value;
+            let message = {
+                type: "LoadPointCloud",
+                content: pathToSource,
+                name: "my-pointcloud"
+            }
+
+			popUp = window.open(domain + '/potree.html', 'potree', "popup");
+            await sleep(1000);
+            popUp.postMessage("lalalalal", domain);
+            popUp.postMessage(message, domain);
+		}, true);
+
+        window.addEventListener('message', function(e) {
+            var origin = e.origin;
+            console.log("message back!");
+            //if(origin !== 'https://scriptverse.academy')
+            //return;
+            // document.getElementsByTagName('p')[0].innerHTML = 'Message from R2-D2: ' + e.data;
+            // console.log('Message from R2-D2: ' + e.data);
+        }, false);
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/open
+		// https://developer.mozilla.org/en-US/docs/Glossary/WindowProxy
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+		// https://scriptverse.academy/tutorials/html5-window-postmessage.html
+		// var domain = "http://127.0.0.1:5501";
+		// var proxy = window.open(domain + "/popup.html", "my-popup", "popup");
+		// console.log(proxy);
+
+		// await new Promise(resolve => setTimeout(resolve, 1000))
+		
+		// var obj = "This is a message, send from the other side!!";
+		// proxy.postMessage(obj, domain);
+    </script>
+</body>
+</html>

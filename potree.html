@@ -5,7 +5,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<title>Potree Viewer</title>
+	<title>Potree Applet</title>
 
 	<link rel="stylesheet" type="text/css" href="./potree_lib/potree/potree.css">
 	<link rel="stylesheet" type="text/css" href="./potree_lib/jquery-ui/jquery-ui.min.css">
@@ -35,58 +35,96 @@
 		<div id="potree_sidebar_container"> </div>
 	</div>	
 
+	<p>
+		<button id="open">OPEN WINDOW</button> <button id="send">SEND MESSAGE</button>
+	</p>
+
+
 	<script type="Module">
 
 		import * as THREE from "./potree_lib/three.js/build/three.module.js";
 	
-		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
-		
-		viewer.setEDLEnabled(true);
-		viewer.setFOV(60);
-		viewer.setPointBudget(1_000_000);
-		viewer.loadSettingsFromURL();
-		
-		viewer.setControls(viewer.earthControls);
+		const POTREE = Potree; // signal that we are using a magic, global object
 
+		function main() {
 
+			window.potree = POTREE;
+			window.viewer = new POTREE.Viewer(document.getElementById("potree_render_area"));
+			viewer.setEDLEnabled(true);
+			viewer.setFOV(60);
+			viewer.setPointBudget(1_000_000);
+			viewer.loadSettingsFromURL();
 
-		// https://developer.mozilla.org/en-US/docs/Web/API/Window/open
-		// https://developer.mozilla.org/en-US/docs/Glossary/WindowProxy
-		// https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
-		// https://scriptverse.academy/tutorials/html5-window-postmessage.html
-		var domain = "http://127.0.0.1:5501";
-		var proxy = window.open(domain + "/popup.html", "my-popup", "popup");
-		console.log(proxy);
+			viewer.setControls(viewer.earthControls);
+			// viewer.setDescription("AHN-2");
 
-		await new Promise(resolve => setTimeout(resolve, 1000))
-		
-		var obj = "This is a message, send from the other side!!";
-		proxy.postMessage(obj, domain);
-		// viewer.setDescription("AHN-2");
-		
-		// viewer.loadGUI(() => {
-		// 	viewer.setLanguage('en');
-		// 	$("#menu_appearance").next().show();
-		// 	viewer.toggleSidebar();
-		// });
-		
-		Potree.loadPointCloud("http://ahn2.pointclouds.nl/potree_data/tile_all/cloud.js", "AHN-2", function(e){
-			viewer.scene.addPointCloud(e.pointcloud);
+			viewer.loadGUI(() => {
+				viewer.setLanguage('en');
+				// $("#menu_appearance").next().show();
+				// viewer.toggleSidebar();
+			});
+		}
+
+		function extractClippedPoints() {
+
+			// find pointclouds
 			
-			let material = e.pointcloud.material;
-			material.size = 0.8;
-			material.minSize = 2.0;
-			material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
-			material.shape = Potree.PointShape.CIRCLE;
-			material.activeAttributeName = "elevation";
-			material.elevationRange = [-1, 65];
 
-			e.pointcloud.position.x += 3;
-			e.pointcloud.position.y -= 3;
-			e.pointcloud.position.z += 4;
-			
-			viewer.fitToScreen();
-		});
+			let volumes = window.viewer.scene.volumes;
+			for (let volume of volumes) {
+				let boundingbox = volume // dat is 1
+				
+			}
+
+		}
+		
+		function loadPointCloud(path, name) {
+			POTREE.loadPointCloud(path, name, function(e){
+				viewer.scene.addPointCloud(e.pointcloud);
+				
+				let material = e.pointcloud.material;
+				material.size = 0.8;
+				material.minSize = 2.0;
+				material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+				material.shape = Potree.PointShape.CIRCLE;
+				material.activeAttributeName = "elevation";
+				material.elevationRange = [-1, 65];
+
+				e.pointcloud.position.x += 3;
+				e.pointcloud.position.y -= 3;
+				e.pointcloud.position.z += 4;
+				
+				viewer.fitToScreen();
+			});
+		}
+
+		function processMessage(message) {
+			if (message.type == "LoadPointCloud") {
+				let path = message.content;
+				let name = message.name;
+				loadPointCloud(path, name);
+				console.log("loading point cloud with path: {}...", message.path);
+			} else {
+				console.log("did not understand message...");
+			}
+		}
+
+		// establish connection with host app
+		window.addEventListener('message', function(e) {
+			console.log("retrieved message!");
+			var origin = e.origin;
+			console.log(e);
+			processMessage(e.data)
+		}, false);
+
+		window.addEventListener('keypress', (e) => {
+            if (e.key != ' ') return;
+            extractClippedPoints();
+        })
+
+		main();
+		loadPointCloud("http://ahn2.pointclouds.nl/potree_data/tile_all/cloud.js", "ahn");
+
 	</script>
   </body>
 </html>
