@@ -38,27 +38,31 @@
             return new Promise(r => setTimeout(r, ms))
         }
 
-		let domain = window.location.origin;
+		let domain = window.location.toString().replace("/index.html", "");
 		let popUp = '';
 
-        window.
 		document.getElementById('open').addEventListener('click', async () => {
-
             let pathToSource = document.getElementById('source').value;
             let message = {
                 type: "LoadPointCloud",
                 content: pathToSource,
                 name: "my-pointcloud"
             }
-
-			popUp = window.open(domain + '/potree.html', 'potree', "popup");
+			popUp = window.open(domain + "/potree-app/potree.html", "potree", "popup");
             await sleep(1000);
-            popUp.postMessage("lalalalal", domain);
             popUp.postMessage(message, domain);
 		}, true);
 
+		document.getElementById('get-points').addEventListener('click', async () => {
+            let message = {
+                type: "GetPoints",
+            }
+            popUp.postMessage(message, domain);
+        }, true);
+
         window.addEventListener('message', function(e) {
             var origin = e.origin;
+            console.log(e.data);
             console.log("message back!");
             //if(origin !== 'https://scriptverse.academy')
             //return;
